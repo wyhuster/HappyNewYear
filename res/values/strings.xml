@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HappyNewYear</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_refresh_sms">生成短信</string>
+    <string name="action_send_sms">发送短信</string>
+    <string name="action_refresh_contacts">刷新联系人</string>
+    <string name="action_check">全选</string>
+
+</resources>
