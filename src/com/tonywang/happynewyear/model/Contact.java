@@ -2,6 +2,7 @@ package com.tonywang.happynewyear.model;
 
 public class Contact {
 	private String name;
+	private String pinyin;
 	private String phone;
 	private int type = -1;
 	private String sms;
@@ -36,6 +37,14 @@ public class Contact {
 
 	public void setSms(String sms) {
 		this.sms = sms;
+	}
+
+	public String getPinyin() {
+		return pinyin;
+	}
+
+	public void setPinyin(String pinyin) {
+		this.pinyin = pinyin;
 	}
 
 }

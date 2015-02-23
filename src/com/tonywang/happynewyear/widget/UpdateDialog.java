@@ -1,4 +1,4 @@
-package com.tonywang.happynewyear.tools;
+package com.tonywang.happynewyear.widget;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +7,8 @@ import com.tonywang.happynewyear.ContactType;
 import com.tonywang.happynewyear.R;
 import com.tonywang.happynewyear.db.DBManager;
 import com.tonywang.happynewyear.model.Contact;
+import com.tonywang.happynewyear.utils.ContactTools;
+import com.tonywang.happynewyear.utils.SmsTools;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -141,7 +143,7 @@ public class UpdateDialog {
 			public void onClick(View v) {
 				String phone = contact.getPhone();
 				String sms = et_sms.getText().toString();
-				Tools.sendSMS(context, phone, sms);
+				SmsTools.sendSMS(context, phone, sms);
 			}
 		});
 	}

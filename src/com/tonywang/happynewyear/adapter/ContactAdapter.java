@@ -75,6 +75,7 @@ public class ContactAdapter extends BaseAdapter {
 		if (row == null) {
 			row = mInflater.inflate(R.layout.item_contact, parent, false);
 			holder = new ViewHolder();
+			holder.catalog = (TextView) row.findViewById(R.id.tv_catalog);
 			holder.select = (CheckBox) row.findViewById(R.id.cb_select);
 			holder.name = (TextView) row.findViewById(R.id.tv_name);
 			holder.phone = (TextView) row.findViewById(R.id.tv_phone);
@@ -83,6 +84,21 @@ public class ContactAdapter extends BaseAdapter {
 			holder = (ViewHolder) row.getTag();
 		}
 
+		String catalog = contacts.get(position).getPinyin().substring(0, 1)
+				.toUpperCase();
+		if (position == 0) {
+			holder.catalog.setVisibility(View.VISIBLE);
+			holder.catalog.setText(catalog);
+		} else {
+			String lastCatalog = contacts.get(position - 1).getPinyin()
+					.substring(0, 1).toUpperCase();
+			if (catalog.equals(lastCatalog)) {
+				holder.catalog.setVisibility(View.GONE);
+			} else {
+				holder.catalog.setVisibility(View.VISIBLE);
+				holder.catalog.setText(catalog);
+			}
+		}
 		holder.select.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
@@ -108,6 +124,7 @@ public class ContactAdapter extends BaseAdapter {
 	}
 
 	class ViewHolder {
+		TextView catalog;
 		CheckBox select;
 		TextView name;
 		TextView phone;

@@ -1,6 +1,7 @@
 package com.tonywang.happynewyear.activity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -10,8 +11,13 @@ import com.tonywang.happynewyear.TemplateSMS;
 import com.tonywang.happynewyear.adapter.ContactAdapter;
 import com.tonywang.happynewyear.db.DBManager;
 import com.tonywang.happynewyear.model.Contact;
-import com.tonywang.happynewyear.tools.Tools;
-import com.tonywang.happynewyear.tools.UpdateDialog;
+import com.tonywang.happynewyear.utils.ContactComparator;
+import com.tonywang.happynewyear.utils.ContactTools;
+import com.tonywang.happynewyear.utils.PinyinUtils;
+import com.tonywang.happynewyear.utils.SmsTools;
+import com.tonywang.happynewyear.widget.SideBar;
+import com.tonywang.happynewyear.widget.UpdateDialog;
+import com.tonywang.happynewyear.widget.SideBar.OnTouchingLetterChangedListener;
 
 import android.support.v7.app.ActionBarActivity;
 import android.app.AlertDialog;
@@ -21,6 +27,8 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,12 +36,17 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements
+		OnTouchingLetterChangedListener {
 
 	private ListView lv_contacts;
+	private SideBar sidebar;
+	private TextView tv_letter;
 	// private DBManager db;
+	private List<Contact> contacts;
 	private GetContactsTask getContactsTask;
 	// private GenerateSMSTask generateSMSTask;
 	private SendSMSTask sendSMSTask;
@@ -46,6 +59,10 @@ public class MainActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		lv_contacts = (ListView) findViewById(R.id.lv_contacts);
+		lv_contacts.setTextFilterEnabled(true);
+		tv_letter = (TextView) findViewById(R.id.tv_letter);
+		sidebar = (SideBar) findViewById(R.id.sidebar_contacts);
+		sidebar.setOnTouchingLetterChangedListener(this);
 
 		progressDialog = new ProgressDialog(this);
 		progressDialog.setCancelable(false);
@@ -169,15 +186,18 @@ public class MainActivity extends ActionBarActivity {
 		protected List<Contact> doInBackground(Boolean... params) {
 			DBManager db = new DBManager(mContext);
 			boolean refresh = params[0];
+			// 刷新，则删除数据库中的联系人信息
 			if (refresh) {
 				db.deleteAll();
 			}
 			List<Contact> contacts = db.query();
 			if (contacts == null || contacts.size() == 0) {
-				contacts = Tools.getAllContacts(mContext);
+				// 从手机通讯录获取
+				contacts = ContactTools.getAllContacts(mContext);
 				if (contacts == null)
 					return null;
-				// 生成默认短信
+
+				// 添加默认短信，添加拼音
 				List<Contact> contacts_insert = new ArrayList<Contact>();
 				for (Contact contact : contacts) {
 					int type = contact.getType();
@@ -188,10 +208,14 @@ public class MainActivity extends ActionBarActivity {
 					} else if (type == ContactType.TYPE_FRIEND) {
 						template_sms = TemplateSMS.sms_self_friend;
 					}
-					String sms = Tools.generateSMS(type, name, template_sms);
+					String sms = SmsTools.generateSMS(type, name, template_sms);
 					contact.setSms(sms);
+					contact.setPinyin(PinyinUtils.getPingYin(name));
 					contacts_insert.add(contact);
 				}
+				// 排序
+				Collections.sort(contacts_insert, new ContactComparator());
+				// 插入数据库
 				db.add(contacts_insert);
 				return contacts_insert;
 			} else {
@@ -201,19 +225,25 @@ public class MainActivity extends ActionBarActivity {
 
 		@Override
 		protected void onPostExecute(final List<Contact> result) {
-			ContactAdapter adapter = new ContactAdapter(mContext, result);
-			lv_contacts.setAdapter(adapter);
-			lv_contacts.setOnItemClickListener(new OnItemClickListener() {
+			contacts = result;
+			if (result != null) {
+				ContactAdapter adapter = new ContactAdapter(mContext, result);
+				lv_contacts.setAdapter(adapter);
+				lv_contacts.setOnItemClickListener(new OnItemClickListener() {
 
-				@Override
-				public void onItemClick(AdapterView<?> parent, View view,
-						int position, long id) {
-					UpdateDialog dialog = new UpdateDialog(mContext, result
-							.get(position));
-					dialog.show();
-				}
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,
+							int position, long id) {
+						UpdateDialog dialog = new UpdateDialog(mContext, result
+								.get(position));
+						dialog.show();
+					}
 
-			});
+				});
+			} else {
+				Toast.makeText(mContext, "未获取到联系人，请尝试刷新!", Toast.LENGTH_SHORT)
+						.show();
+			}
 			progressDialog.dismiss();
 		}
 	}
@@ -244,7 +274,7 @@ public class MainActivity extends ActionBarActivity {
 				} else if (type == ContactType.TYPE_FRIEND) {
 					template_sms = TemplateSMS.sms_self_friend;
 				}
-				String sms = Tools.generateSMS(type, name, template_sms);
+				String sms = SmsTools.generateSMS(type, name, template_sms);
 				contact.setSms(sms);
 				db.updateSms(contact);
 			}
@@ -270,10 +300,10 @@ public class MainActivity extends ActionBarActivity {
 			List<Contact> contacts = params[0];
 			for (Contact contact : contacts) {
 				String name = contact.getName();
-				//progressDialog.setMessage("发送至：" + name + " ...");
+				// progressDialog.setMessage("发送至：" + name + " ...");
 				String phone = contact.getPhone();
 				String sms = contact.getSms();
-				// Tools.sendSMS(phone, sms);
+				// SmsTools.sendSMS(phone, sms);
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
@@ -288,5 +318,46 @@ public class MainActivity extends ActionBarActivity {
 		protected void onPostExecute(Void result) {
 			progressDialog.dismiss();
 		}
+	}
+
+	@Override
+	public void onTouchingLetterChanged(String s) {
+		if (contacts == null) {
+			return;
+		}
+		tv_letter.setText(s);
+		tv_letter.setVisibility(View.VISIBLE);
+		_handler.removeCallbacks(letterThread);
+		_handler.postDelayed(letterThread, 1000);
+		int position = alphaIndexer(s);
+		if (position >= 0) {
+			lv_contacts.setSelection(position);
+		}
+
+	}
+
+	private Handler _handler = new Handler();
+	private Runnable letterThread = new Runnable() {
+		public void run() {
+			tv_letter.setVisibility(View.GONE);
+		}
+	};
+
+	/**
+	 * 根据sidebar字母获取listview的位置　
+	 * 
+	 * @param s
+	 * @return
+	 */
+	private int alphaIndexer(String s) {
+		int position = 0;
+		for (int i = 0; i < contacts.size(); i++) {
+			String py = contacts.get(i).getPinyin();
+			if (py.startsWith(s.toLowerCase())) {
+				position = i;
+				break;
+			}
+		}
+		return position;
 	}
 }

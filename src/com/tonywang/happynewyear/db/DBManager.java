@@ -31,9 +31,11 @@ public class DBManager {
 		db.beginTransaction(); // 开始事务
 		try {
 			for (Contact person : persons) {
-				db.execSQL("INSERT INTO contact VALUES(null, ?, ?, ?, ?)",
-						new Object[] { person.getName(), person.getPhone(),
-								person.getType(), person.getSms() });
+				db.execSQL(
+						"INSERT INTO contact VALUES(null, ?, ?, ?, ?, ?)",
+						new Object[] { person.getName(), person.getPinyin(),
+								person.getPhone(), person.getType(),
+								person.getSms() });
 			}
 			db.setTransactionSuccessful(); // 设置事务成功完成
 		} finally {
@@ -95,6 +97,7 @@ public class DBManager {
 		while (c.moveToNext()) {
 			Contact person = new Contact();
 			person.setName(c.getString(c.getColumnIndex("name")));
+			person.setPinyin(c.getString(c.getColumnIndex("pinyin")));
 			person.setPhone(c.getString(c.getColumnIndex("phone")));
 			person.setType(c.getInt(c.getColumnIndex("type")));
 			person.setSms(c.getString(c.getColumnIndex("sms")));

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DBHelper extends SQLiteOpenHelper {
 
 	private static final String DATABASE_NAME = "tonywang.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 
 	public DBHelper(Context context) {
 		// CursorFactory设置为null,使用默认值
@@ -18,15 +18,15 @@ public class DBHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL("CREATE TABLE IF NOT EXISTS contact"
-				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR, phone VARCHAR, type INTEGER, sms TEXT)");
+				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR, pinyin VARCHAR, phone VARCHAR, type INTEGER, sms TEXT)");
 	}
 
 	// 如果DATABASE_VERSION值被改为2,系统发现现有数据库版本不同,即会调用onUpgrade
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		//db.execSQL("ALTER TABLE person ADD COLUMN other STRING");
+		// db.execSQL("ALTER TABLE person ADD COLUMN other STRING");
 		db.execSQL("DROP TABLE contact");
 		db.execSQL("CREATE TABLE IF NOT EXISTS contact"
-				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR, phone VARCHAR, type INTEGER, sms TEXT)");
+				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR, pinyin VARCHAR, phone VARCHAR, type INTEGER, sms TEXT)");
 	}
 }

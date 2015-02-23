@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:padding="5dp" >
 
-        <com.tonywang.happynewyear.tools.MyRadioGroup
+        <com.tonywang.happynewyear.widget.MyRadioGroup
             android:id="@+id/radioGroup1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -95,7 +95,7 @@
                     android:layout_height="wrap_content"
                     android:text="忽略" />
             </LinearLayout>
-        </com.tonywang.happynewyear.tools.MyRadioGroup>
+        </com.tonywang.happynewyear.widget.MyRadioGroup>
 
         <EditText
             android:id="@+id/et_sms"
